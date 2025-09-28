@@ -3,6 +3,10 @@
 
 #include <iostream>
 #include <deque>
+#include <mutex>
+#include <condition_variable>
+#include <vector>
+#include <cassert>
 
 struct Telemetry {
     // hot metadata (small)
@@ -19,46 +23,39 @@ struct Telemetry {
 class TelemetryQueue
 {
 public:
-    void push_data(Telemetry data)
+    explicit TelemetryQueue(size_t len) : max_len(len) { assert(max_len > 0); }
+    void push_data(Telemetry&& data)
     {
         std::unique_lock<std::mutex> lock(m);
-        if (q.size() == max_len)
-        {
-            cv.wait(lock, []{ return q.size() < max_len;});
-        }
+        not_full_cv.wait(lock, [&]{ return q.size() < max_len;});
         q.push_back(std::move(data));
+        lock.unlock();
+        not_empty_cv.notify_one();
     }
 
-    bool pop_data(Telemetry &data)
+    Telemetry pop_data(void)
     {
         std::unique_lock<std::mutex> lock(m);
-        if (!q.empty())
-        {
-            // get oldest data
-            data = std::move(q.back());
-            q.pop();
-            if (q.size() == max_len - 1)
-            {
-                cv.notify_one();
-            }
-            return true;
-        }
-        else
-        {
-            std::cout << "Attempting to pop empty queue\n";
-            return false;
-        }
+        not_empty_cv.wait(lock, [&] { return !q.empty(); });
+        // get oldest data
+        Telemetry data = std::move(q.front());
+        q.pop_front();
+        lock.unlock();
+        not_full_cv.notify_one();
+        return data;
     }
 
     size_t getSize(void)
     {
-        return q.get_size();
+        std::unique_lock<std::mutex> lock(m);
+        return q.size();
     }
 
 private:
     std::deque<Telemetry> q;
     std::mutex m;
-    std::contition_variable<
+    std::condition_variable not_empty_cv;
+    std::condition_variable not_full_cv;
     size_t max_len;
 };
 
