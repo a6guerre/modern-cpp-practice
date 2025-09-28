@@ -7,6 +7,7 @@
 #include <condition_variable>
 #include <vector>
 #include <cassert>
+#include <optional>
 
 struct Telemetry {
     // hot metadata (small)
@@ -24,6 +25,16 @@ class TelemetryQueue
 {
 public:
     explicit TelemetryQueue(size_t len) : max_len(len) { assert(max_len > 0); }
+    // Will show with metrics that the copy version is less performant
+    void push_data_copy(Telemetry data)
+    {
+        std::unique_lock<std::mutex> lock(m);
+        not_full_cv.wait(lock, [&]{ return q.size() < max_len;});
+        q.push_back(std::move(data));
+        lock.unlock();
+        not_empty_cv.notify_one();
+    }
+
     void push_data(Telemetry&& data)
     {
         std::unique_lock<std::mutex> lock(m);
