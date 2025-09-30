@@ -29,9 +29,9 @@ int main(void)
     const int SIMULATED_WORK_TIME_MS = 100;
     const int FUTURE_WAIT_TIME_MS = 10;
 
-    int val = compute_with_timeout([](){ std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    int val = compute_with_timeout([](){ std::this_thread::sleep_for(std::chrono::milliseconds(SIMULATED_WORK_TIME));
                                          return 10; },
-                                         std::chrono::milliseconds(10),42);
+                                         std::chrono::milliseconds(FUTURE_WAIT_TIME_MS), 42);
     std::cout << "Returned val: " << val << "\n";
 
 }
