@@ -38,7 +38,7 @@ void producer_via_move(TelemetryQueue &q)
     Telemetry data;
     // Produces 100 elements so we can time and compare move and copy for pushing data into queue
     auto start = steady_clock::now();
-    while (i < 100)
+    while (i < ITER)
     {
         std::unique_lock<std::mutex> lock(m);
         if (!running)
@@ -65,7 +65,7 @@ void producer_via_copy(TelemetryQueue &q)
     Telemetry data;
     // Produces 100 elements so we can time and compare move and copy for pushing data into queue
     auto start = steady_clock::now();
-    while (i < 100)
+    while (i < ITER)
     {
         std::unique_lock<std::mutex> lock(m);
         if (!running)
