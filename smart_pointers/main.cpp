@@ -126,8 +126,19 @@ int main() {
     // 1. Create a vector of std::unique_ptr<foo> with various values for 'a'.
     // 2. Use std::remove_if to remove elements where a < 3.
     // 3. Print the remaining elements to confirm.
-
-
+    std::vector<std::unique_ptr<foo>> removeVec;
+    for (int i = 0; i < 10; ++i)
+    {
+        removeVec.emplace_back(std::make_unique<foo>(i, 1.0, "Foo"));
+    }
+    auto new_end = std::remove_if(removeVec.begin(), removeVec.end(), [&](const auto& vecPtr) { return (vecPtr->a < 3); });
+    // Erase the "removed" elements (the ones moved to the end)
+    removeVec.erase(new_end, removeVec.end());
+    for (const auto &elem: removeVec)
+    {
+        std::cout << "Remaining element after remove if: ";
+        elem->print();
+    }
     // --------------------------------------------------------
     // EXERCISE 9: Exception safety with factory function
     // --------------------------------------------------------
