@@ -157,8 +157,11 @@ int main() {
     // 2. Add one element using emplace_back(std::make_unique<foo>(...)).
     // 3. Add another by constructing a unique_ptr first and moving it into the vector.
     // 4. Print all elements.
-
-
+    std::vector<std::unique_ptr<foo>> fooVec;
+    fooVec.emplace_back(std::make_unique<foo>(2, 3.0, "test"));
+    std::unique_ptr<foo> fooElem = std::make_unique<foo>(3,4.0, "Test");
+    fooVec.emplace_back(std::move(fooElem));
+    
     // --------------------------------------------------------
     // EXERCISE 11: Formatting with to_string
     // --------------------------------------------------------
